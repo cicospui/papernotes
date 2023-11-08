@@ -28,7 +28,7 @@ $\textcolor{red}{完全异步的共识协议可以同时保证活性和安全性
 
 BDT的设计如下图所示:
 
-![bdt](figs/bolt-Dumbo transformer/Overview.png)
+![bdt](figs/Overview.png)
 
 三个部分分别是：
 
@@ -38,13 +38,13 @@ BDT的设计如下图所示:
 
 下图展示了BDT在2秒和120秒的较差网络中的性能表现，并和HotStuff及直接使用Dumbo进行了比较：
 
-![1](figs/bolt-Dumbo transformer/波动网络下模拟性能对比.png)
+![1](figs/波动网络下模拟性能对比.png)
 
 即使在异步网络中，BDT依然可以保持活性和安全性，并有n/3的拜占庭容忍度。同时，它可以和确定性协议一样快，并和异步协议一样鲁棒。
 
 更详细的延迟和吞吐量结果（5大洲16个区域100个服务器）如下图所示：
 
-![2](figs/bolt-Dumbo transformer/不同网络下效率对比.png)
+![2](figs/不同网络下效率对比.png)
 
 Fastlane中是两种不同的Bolt，Timeout则是模拟DOS攻击下，Fastlane完全无法使用时的情况。
 
@@ -56,7 +56,7 @@ Fastlane中是两种不同的Bolt，Timeout则是模拟DOS攻击下，Fastlane�
 
 nw-ABC也称Bolt，在乐观情况下可以作为成熟的ABC执行，每个时钟周期输出一个块。若同步假设不成立，就不具有活性，便不会完全一致了，只能确保可公证性。每当任一方在j位置输出带proof的区块时，说明至少**f+1**个诚实方已经存在了**j-1**的块输出，如下图所示：
 
-![1](figs/bolt-Dumbo transformer/nw-ABC.png)
+![1](figs/nw-ABC.png)
 
 
 
@@ -80,7 +80,7 @@ KS02实现了开创性工作，RC05的改进则是通过在完全异步原子广
 
 $\textcolor{red}{使用低效的步速同步机制会消除引入乐观快速车道锁带来的好处}​$。步速同步机制也是需要考虑其效率的，从下图所示的KS02和RC05在波动网络下的表现就可看出，**一次缓慢回退会导致浪费数十个乐观车道**：
 
-![1](figs/bolt-Dumbo transformer/KS02RC02在波动网络中的缓慢回退.png)
+![1](figs/KS02RC02在波动网络中的缓慢回退.png)
 
 ### 本文思路
 
@@ -102,7 +102,7 @@ $\textcolor{red}{使用低效的步速同步机制会消除引入乐观快速车
 
 区块结构如下图所示：
 
-![1](figs/bolt-Dumbo transformer/区块结构.png)
+![1](figs/区块结构.png)
 
 每个区块由**<epoch, slot, TXs, Proof>**组成，TXs是交易序列（有效负载）且论文的批处理大小**B=|TXs|**。Proof作为一个证明，需要至少**f+1**各诚实方的签署投票证明区块有效。
 
@@ -171,7 +171,7 @@ BDT实现简单高效的步速同步需要快速通道抽象（**nw-ABC**）和�
 
 其算法流程如下图：
 
-![1](figs/bolt-Dumbo transformer/Blot-sCAST算法.png)
+![1](figs/Blot-sCAST算法.png)
 
 #### 通过顺序可靠广播构造Blot（sRBC）
 
@@ -179,13 +179,13 @@ BDT实现简单高效的步速同步需要快速通道抽象（**nw-ABC**）和�
 
 其算法流程如下图：
 
-![1](figs/bolt-Dumbo transformer/Bolt-sRBC算法.png)
+![1](figs/Bolt-sRBC算法.png)
 
 #### Bolt的外部可调用函数
 
 Bolt提供了两个外部可调用函数，供其他过程使用。
 
-![1](figs/bolt-Dumbo transformer/Bolt的验证和提取.png)
+![1](figs/Bolt的验证和提取.png)
 
 
 
@@ -199,7 +199,7 @@ Bolt提供了两个外部可调用函数，供其他过程使用。
 
 tcv-BA实现了诚实方以压倒性的概率满足终止、一致和有效性。该算法只需要在原Dumbo-ABA的基础上进行如下修改：
 
-
+![1]()
 
 
 
@@ -211,7 +211,7 @@ tcv-BA实现了诚实方以压倒性的概率满足终止、一致和有效性�
 
 BDT的框架如下图所示：
 
-![1](figs/bolt-Dumbo transformer/BDT框架.png)
+![1](figs/BDT框架.png)
 
 Bolt被包装在每出新块就更新的**计时器**中，超时则多播当前最新块的Proof。各方等待**n-f**个带有效Bolt区块证明的回退请求，并进入Pace-Sync中。各节点使用接收到回退请求中**最大的s**作为tcv-BA的输入，并在tcv-BA中决定出回到Bolt或进入悲观路径。由于tcv-BA无法确保输出**始终**为更大的s，则最新的fastlane块会被标记为Pending，直到返回另一个新块后撤销掉。
 
@@ -227,7 +227,7 @@ Bolt被包装在每出新块就更新的**计时器**中，超时则多播当前
 
 首先考察有效负载为0时（空交易序列）的延迟情况：
 
-![1](figs/bolt-Dumbo transformer/WAN下的基本延迟.png)
+![1](figs/WAN下的基本延迟.png)
 
 BDT-sCAST的基本延迟可以和HotStuff打平，这是因为BDT-sCAST的快车道可以被认为是**具有稳定领导者的2chain Hotstuff**，且乐观延迟情况下具有五轮，这与HotStuff也相符合。
 
@@ -237,25 +237,25 @@ BDT-sCAST的基本延迟可以和HotStuff打平，这是因为BDT-sCAST的快车
 
 以每秒交易数为单位测试吞吐量，以观察处理突发事务的能力。若同时使用交易缓冲区，这个值可以更高。吞吐量的结果如下图所示：
 
-![2](figs/bolt-Dumbo transformer/WAN下峰值吞吐量.png)
+![2](figs/WAN下峰值吞吐量.png)
 
 ### 转换器延迟
 
 测试了不同的错误情况下、不同方案的步速同步中的转换器延迟，本文的方案明显好于之前研究中使用MVBA回退的结果：
 
-![2](figs/bolt-Dumbo transformer/转换器的延迟.png)
+![2](figs/转换器的延迟.png)
 
 ### 悲观路径性能
 
 当BDT遭受DOS攻击时，Fastlane就会持续Timeout，下图展示了这种情况下悲观路径与Dumbo本身的性能差异。BDT比Dumbo总是需要额外花费2.5秒的超时参数，尽管如此，BDT的性能仍然接近于Dumbo：
 
-![1](figs/bolt-Dumbo transformer/2.5秒快速通道超时.png)
+![1](figs/2.5秒快速通道超时.png)
 
 ### 整体性能
 
 下图展示了所有的方案吞吐量和延迟情况的关系，BDT-sRBC 是有利于**大吞吐量**的情况的更好选择，而 BDT-sCAST 更适合**延迟敏感**的场景：
 
-![1](figs/bolt-Dumbo transformer/result.png)
+![1](figs/result.png)
 
 但这种延迟-吞吐量的紧张关系可以在引入内存池后得到缓解。
 
@@ -265,13 +265,13 @@ BDT-sCAST的基本延迟可以和HotStuff打平，这是因为BDT-sCAST的快车
 
 下图展示了两次为时2秒的短时波动下的各方案情况：
 
-![1](figs/bolt-Dumbo transformer/两次2秒波动.png)
+![1](figs/两次2秒波动.png)
 
 如上图所示： $\textcolor{red}{BDT在短期网络波动下的性能不会显著下降}$，这是因为其独特的**二阶段回退**机制，只需要执行pace-sync阶段就返回快速通道。而对应的之前的研究（由MVBA实现）则会因为短期波动，运行繁重的步速同步和悲观路径。
 
 下图展示了一次为时120秒的长时坏网络下各方案的情况：
 
-![1](figs/bolt-Dumbo transformer/120秒长坏网络.png)
+![1](figs/120秒长坏网络.png)
 
 这种情况下，BDT可以实现同样的悲观路径性能，而使用MVBA的回退方案相较之下有着10秒的延迟。这是由于BDT为回退增加了最小限度的开销。
 
